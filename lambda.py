@@ -207,7 +207,11 @@ def handler(event, context):
                 "ConditionExpression": (
                     "#Organisation_linkCount = :expectedOrganisationLinkCount and "
                     "#linkCount = :expectedLinkCount and "
-                    "(#SshKeyPair_linkCount = :expectedSshKeyPairLinkCount or attribute_not_exists(#SshKeyPair_linkCount))"
+                )
+                + (
+                    "#SshKeyPair_linkCount = :expectedSshKeyPairLinkCount"
+                    if len(ssh_key_pair_ids)
+                    else "(#SshKeyPair_linkCount = :expectedSshKeyPairLinkCount or attribute_not_exists(#SshKeyPair_linkCount))"
                 ),
                 "ExpressionAttributeNames": {
                     "#Organisation_linkCount": "__Organisation_linkCount",
