@@ -11,7 +11,6 @@ SSH_KEY_PAIR_USER_DYNAMODB_TABLE = os.environ["SSH_KEY_PAIR_USER_DYNAMODB_TABLE"
 SSH_KEY_PAIR_DYNAMODB_TABLE = os.environ["SSH_KEY_PAIR_DYNAMODB_TABLE"]
 SSH_PUBLIC_KEY_DYNAMODB_TABLE = os.environ["SSH_PUBLIC_KEY_DYNAMODB_TABLE"]
 
-
 dynamodb_client = boto3.client("dynamodb")
 dynamodb_resource = boto3.resource("dynamodb")
 
@@ -30,11 +29,28 @@ dynamodb_ssh_key_pair_user_table = dynamodb_resource.Table(
 dynamodb_ssh_key_pair_table = dynamodb_resource.Table(SSH_KEY_PAIR_DYNAMODB_TABLE)
 dynamodb_ssh_public_key_table = dynamodb_resource.Table(SSH_PUBLIC_KEY_DYNAMODB_TABLE)
 
-deserializer = boto3.dynamodb.types.TypeDeserializer()
+
+COGNITO_USER_POOL_ID = os.environ["COGNITO_USER_POOL_ID"]
+
+cognito_idp_client = boto3.client("cognito-idp")
 
 
 def handler(event, context):
     user_id = event["user_id"]
+
+    list_users_response = cognito_idp_client.list_users(
+        UserPoolId=COGNITO_USER_POOL_ID,
+        Limit=10,
+        Filter=f'email = "{user_id}"',
+    )
+    cognito_usernames = [user["Username"] for user in list_users_response["Users"]]
+    print(json.dumps(cognito_usernames))
+    for cognito_username in cognito_usernames:
+        cognito_idp_client.admin_delete_user(
+            UserPoolId=COGNITO_USER_POOL_ID,
+            Username=cognito_username,
+        )
+
     transact_items = []
     organisation_user_query_result = dynamodb_organisation_user_table.query(
         KeyConditionExpression="#sourceId = :sourceId",

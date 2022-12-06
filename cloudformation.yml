@@ -36,6 +36,8 @@ Resources:
             Fn::ImportValue: !Sub ${Environment}:SshKeyPair:DynamoDbTable:Name
           SSH_PUBLIC_KEY_DYNAMODB_TABLE:
             Fn::ImportValue: !Sub ${Environment}:SshPublicKey:DynamoDbTable:Name
+          COGNITO_USER_POOL_ID:
+            Fn::ImportValue: !Sub ${Environment}:Cognito:CognitoUserPool:Id
       Code:
         S3Bucket: !Ref ArtifactBucketName
         S3Key: !Sub ${ArtifactBucketPath}/lambda.zip
@@ -53,6 +55,16 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:
+        - PolicyName: Cognito
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cognito-idp:ListUsers
+                  - cognito-idp:AdminDeleteUser
+                Resource:
+                  - Fn::ImportValue: !Sub ${Environment}:Cognito:CognitoUserPool:Arn
         - PolicyName: DynamoDb
           PolicyDocument:
             Version: 2012-10-17
