@@ -206,7 +206,8 @@ def handler(event, context):
                 "Key": {"id": {"S": user_id}},
                 "ConditionExpression": (
                     "#Organisation_linkCount = :expectedOrganisationLinkCount and "
-                    "#linkCount = :expectedLinkCount and #SshKeyPair_linkCount = :expectedSshKeyPairLinkCount"
+                    "#linkCount = :expectedLinkCount and "
+                    "(#SshKeyPair_linkCount = :expectedSshKeyPairLinkCount or attribute_not_exists(#SshKeyPair_linkCount))"
                 ),
                 "ExpressionAttributeNames": {
                     "#Organisation_linkCount": "__Organisation_linkCount",
