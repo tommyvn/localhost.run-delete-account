@@ -40,13 +40,11 @@ def handler(event, context):
 
     list_users_response = cognito_idp_client.list_users(
         UserPoolId=COGNITO_USER_POOL_ID,
-        AttributesToGet=[
-            'string',
-        ],
         Limit=10,
         Filter=f'email = "{user_id}"',
     )
     cognito_usernames = [user["Username"] for user in list_users_response["Users"]]
+    print(json.dumps(cognito_usernames))
     for cognito_username in cognito_usernames:
         cognito_idp_client.admin_delete_user(
             UserPoolId=COGNITO_USER_POOL_ID,
