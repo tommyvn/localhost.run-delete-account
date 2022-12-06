@@ -1,0 +1,74 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: delete-account
+
+Parameters:
+  Environment:
+    Type: String
+  ArtifactBucketName:
+    Type: String
+  ArtifactBucketPath:
+    Type: String
+
+Resources:
+  DeleteAccountLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: lambda.handler
+      Role: !GetAtt DeleteAccountLambdaFunctionIamRole.Arn
+      Runtime: python3.9
+      Timeout: 10
+      Environment:
+        Variables:
+          USER_DYNAMODB_TABLE:
+            Fn::ImportValue: !Sub ${Environment}:User:DynamoDbTable:Name
+          ORGANISATION_USER_DYNAMODB_TABLE:
+            Fn::ImportValue: !Sub ${Environment}:Organisation-User:DynamoDbTable:Name
+          ORGANISATION_DYNAMODB_TABLE:
+            Fn::ImportValue: !Sub ${Environment}:Organisation:DynamoDbTable:Name
+          DOMAIN_ORGANISATION_DYNAMODB_TABLE:
+            Fn::ImportValue: !Sub ${Environment}:Domain-Organisation:DynamoDbTable:Name
+          DOMAIN_DYNAMODB_TABLE:
+            Fn::ImportValue: !Sub ${Environment}:Domain:DynamoDbTable:Name
+          SSH_KEY_PAIR_USER_DYNAMODB_TABLE:
+            Fn::ImportValue: !Sub ${Environment}:SshKeyPair-User:DynamoDbTable:Name
+          SSH_KEY_PAIR_DYNAMODB_TABLE:
+            Fn::ImportValue: !Sub ${Environment}:SshKeyPair:DynamoDbTable:Name
+          SSH_PUBLIC_KEY_DYNAMODB_TABLE:
+            Fn::ImportValue: !Sub ${Environment}:SshPublicKey:DynamoDbTable:Name
+      Code:
+        S3Bucket: !Ref ArtifactBucketName
+        S3Key: !Sub ${ArtifactBucketPath}/lambda.zip
+
+  DeleteAccountLambdaFunctionIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDb
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Query
+                  - dynamodb:ConditionCheckItem
+                Resource:
+                  - Fn::ImportValue: !Sub ${Environment}:User:DynamoDbTable:Arn
+                  - Fn::ImportValue: !Sub ${Environment}:Organisation-User:DynamoDbTable:Arn
+                  - Fn::ImportValue: !Sub ${Environment}:Organisation:DynamoDbTable:Arn
+                  - Fn::ImportValue: !Sub ${Environment}:Domain-Organisation:DynamoDbTable:Arn
+                  - Fn::ImportValue: !Sub ${Environment}:Domain:DynamoDbTable:Arn
+                  - Fn::ImportValue: !Sub ${Environment}:SshKeyPair-User:DynamoDbTable:Arn
+                  - Fn::ImportValue: !Sub ${Environment}:SshKeyPair:DynamoDbTable:Arn
+                  - Fn::ImportValue: !Sub ${Environment}:SshPublicKey:DynamoDbTable:Arn
