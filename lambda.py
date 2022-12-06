@@ -50,7 +50,7 @@ def handler(event, context):
         item["targetId"] for item in organisation_user_query_result["Items"]
     ]
     for organisation_id in organisation_ids:
-        domain_organisation_query_result = dynamodb_organisation_user_table.query(
+        domain_organisation_query_result = dynamodb_domain_organisation_table.query(
             KeyConditionExpression="#sourceId = :sourceId",
             ExpressionAttributeNames={
                 "#sourceId": "sourceId",
@@ -73,7 +73,7 @@ def handler(event, context):
                                 "sourceId": {"S": organisation_id},
                                 "targetId": {"S": domain_id},
                             },
-                            "ConditionExpression": "attributeExists(#sourceId)",
+                            "ConditionExpression": "attribute_exists(#sourceId)",
                             "ExpressionAttributeNames": {
                                 "#sourceId": "sourceId",
                             },
@@ -83,9 +83,9 @@ def handler(event, context):
                         "Delete": {
                             "TableName": DOMAIN_DYNAMODB_TABLE,
                             "Key": {"id": {"S": domain_id}},
-                            "ConditionExpression": "attributeExists(#id)",
+                            "ConditionExpression": "attribute_exists(#id)",
                             "ExpressionAttributeNames": {
-                                "#sourceId": "id",
+                                "#id": "id",
                             },
                         },
                     },
@@ -120,7 +120,7 @@ def handler(event, context):
                             "sourceId": {"S": user_id},
                             "targetId": {"S": organisation_id},
                         },
-                        "ConditionExpression": "attributeExists(#sourceId)",
+                        "ConditionExpression": "attribute_exists(#sourceId)",
                         "ExpressionAttributeNames": {
                             "#sourceId": "sourceId",
                         },
@@ -133,7 +133,7 @@ def handler(event, context):
                             "sourceId": {"S": organisation_id},
                             "targetId": {"S": user_id},
                         },
-                        "ConditionExpression": "attributeExists(#sourceId)",
+                        "ConditionExpression": "attribute_exists(#sourceId)",
                         "ExpressionAttributeNames": {
                             "#sourceId": "sourceId",
                         },
@@ -170,7 +170,7 @@ def handler(event, context):
                             "sourceId": {"S": user_id},
                             "targetId": {"S": ssh_key_pair_id},
                         },
-                        "ConditionExpression": "attributeExists(#sourceId)",
+                        "ConditionExpression": "attribute_exists(#sourceId)",
                         "ExpressionAttributeNames": {
                             "#sourceId": "sourceId",
                         },
@@ -180,7 +180,7 @@ def handler(event, context):
                     "Delete": {
                         "TableName": SSH_KEY_PAIR_DYNAMODB_TABLE,
                         "Key": {"id": {"S": ssh_key_pair_id}},
-                        "ConditionExpression": "attributeExists(#id)",
+                        "ConditionExpression": "attribute_exists(#id)",
                         "ExpressionAttributeNames": {
                             "#id": "id",
                         },
@@ -190,7 +190,7 @@ def handler(event, context):
                     "Delete": {
                         "TableName": SSH_PUBLIC_KEY_DYNAMODB_TABLE,
                         "Key": {"id": {"S": ssh_public_key_id}},
-                        "ConditionExpression": "attributeExists(#id)",
+                        "ConditionExpression": "attribute_exists(#id)",
                         "ExpressionAttributeNames": {
                             "#id": "id",
                         },
@@ -209,7 +209,7 @@ def handler(event, context):
                     "#linkCount = :expectedLinkCount and #SshKeyPair_linkCount = :expectedSshKeyPairLinkCount"
                 ),
                 "ExpressionAttributeNames": {
-                    "#User_linkCount": "__User_linkCount",
+                    "#Organisation_linkCount": "__Organisation_linkCount",
                     "#SshKeyPair_linkCount": "__SshKeyPair_linkCount",
                     "#linkCount": "__linkCount",
                 },
@@ -236,3 +236,9 @@ def handler(event, context):
     print(json.dumps(result))
 
     return result
+
+
+if __name__ == "__main__":
+    import sys
+    user_id = sys.argv[1]
+    handler({"user_id": user_id}, {})
